@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Tâches Pro Dynamic</title>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+     
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+           
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            padding: 20px;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .todo-container {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            width: 100%;
+            max-width: 480px;
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease-out;
+        }
+
+        .todo-container:hover {
+            transform: scale(1.01);
+        }
+
+        header h1 {
+            font-size: 28px;
+            color: #1e293b;
+            text-align: center;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .progress-container {
+            width: 100%;
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            border-radius: 10px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #taskInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 15px;
+            outline: none;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+        }
+
+        #taskInput:focus {
+            border-color: #3b82f6;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        #addBtn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            width: 55px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #addBtn:hover {
+            background: #2563eb;
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        #addBtn:active {
+            transform: translateY(0) scale(1.02);
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.3);
+        }
+
+        .filters {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .filter-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 5px 10px;
+            transition: all 0.3s;
+            font-weight: 600;
+            position: relative;
+        }
+
+        .filter-btn.active {
+            color: #3b82f6;
+        }
+
+        .filter-btn::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -11px;
+            left: 0;
+            background-color: #3b82f6;
+            transition: width 0.3s ease;
+        }
+
+        .filter-btn.active::after {
+            width: 100%;
+        }
+
+        ul {
+            list-style: none;
+            max-height: 350px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        ul::-webkit-scrollbar { width: 6px; }
+        ul::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: fadeInAndSlideUp 0.5s ease-out forwards;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes fadeInAndSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        li.removing {
+            animation: fadeOutAndScaleDown 0.4s ease-in forwards;
+            pointer-events: none; 
+        }
+
+        @keyframes fadeOutAndScaleDown {
+            to { opacity: 0; transform: scale(0.9); }
+        }
+
+        li:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transform: translateX(3px);
+        }
+
+        .task-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .custom-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid #cbd5e1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: transparent;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        li.completed .custom-checkbox {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+            animation: popCheck 0.3s ease-out forwards;
+        }
+
+        @keyframes popCheck {
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        li.completed .task-text {
+            color: #94a3b8;
+            position: relative;
+        }
+        
+        li.completed .task-text::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 0;
+            height: 2px;
+            background-color: #94a3b8;
+            animation: strikeThrough 0.3s ease-out forwards;
+            animation-delay: 0.1s;
+        }
+
+        @keyframes strikeThrough {
+            to { width: 100%; }
+        }
+
+        .task-text {
+            font-size: 15px;
+            word-break: break-word;
+            transition: color 0.3s, opacity 0.3s;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .edit-btn { color: #f59e0b; }
+        .edit-btn:hover { background: #fef3c7; transform: rotate(-5deg); }
+        
+        .delete-btn { color: #ef4444; }
+        .delete-btn:hover { background: #fee2e2; transform: scale(1.1); }
+
+        .footer-actions {
+            margin-top: 20px;
+            text-align: right;
+            position: relative;
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .clear-btn:hover { text-decoration: underline; color: #b91c1c; }
+        
+        .clear-btn:active {
+            transform: scale(0.98);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #94a3b8;
+            padding: 20px;
+            font-size: 15px;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="todo-container">
+        <header>
+            <h1>Mes Tâches Pro+ 🚀</h1>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </header>
+        
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="Ajouter une nouvelle tâche...">
+            <button id="addBtn"><i class="fas fa-paper-plane"></i></button>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">Toutes</button>
+            <button class="filter-btn" data-filter="pending">En cours</button>
+            <button class="filter-btn" data-filter="completed">Terminées</button>
+        </div>
+
+        <ul id="taskList"></ul>
+        <div class="empty-state" id="emptyState">Aucune tâche dans cette liste 🏖️</div>
+
+        <div class="footer-actions">
+            <button class="clear-btn" id="clearCompletedBtn" style="display: none;">Effacer les tâches terminées</button>
+        </div>
+    </div>
+
+    <script>
+        let todos = JSON.parse(localStorage.getItem('pro-todos-fr-dynamic')) || [];
+        let currentFilter = 'all';
+
+        const taskInput = document.getElementById('taskInput');
+        const addBtn = document.getElementById('addBtn');
+        const taskList = document.getElementById('taskList');
+        const emptyState = document.getElementById('emptyState');
+        const progressBar = document.getElementById('progressBar');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const clearCompletedBtn = document.getElementById('clearCompletedBtn');
+
+        // Events
+        document.addEventListener('DOMContentLoaded', renderTodos);
+        addBtn.addEventListener('click', addTodo);
+        taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') addTodo(); });
+        clearCompletedBtn.addEventListener('click', clearCompleted);
+
+        filterBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelector('.filter-btn.active').classList.remove('active');
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                renderTodos();
+            });
+        });
+
+        function addTodo() {
+            const text = taskInput.value.trim();
+            if (!text) return;
+
+            const newTodo = {
+                id: Date.now(),
+                text: text,
+                completed: false
+            };
+
+            todos.unshift(newTodo); 
+            taskInput.value = '';
+            saveAndRender();
+        }
+
+        function deleteTodoWithAnimation(id) {
+            const li = document.querySelector(`li[data-id="${id}"]`);
+            if (li) {
+                li.classList.add('removing');
+                li.addEventListener('animationend', () => {
+                    todos = todos.filter(todo => todo.id !== id);
+                    saveAndRender();
+                });
+            } else {
+                todos = todos.filter(todo => todo.id !== id);
+                saveAndRender();
+            }
+        }
+
+        function toggleTodo(id) {
+            todos = todos.map(todo => {
+                if (todo.id === id) {
+                    return { ...todo, completed: !todo.completed };
+                }
+                return todo;
+            });
+            saveAndRender();
+        }
+
+        function editTodo(id) {
+            const todo = todos.find(t => t.id === id);
+            const newText = prompt("Modifier la tâche :", todo.text);
+            
+            if (newText !== null && newText.trim() !== '') {
+                todo.text = newText.trim();
+                saveAndRender();
+            }
+        }
+
+        function clearCompleted() {
+            if(confirm('Êtes-vous sûr de vouloir supprimer toutes les tâches terminées ?')) {
+                const completedLis = document.querySelectorAll('li.completed');
+                
+                if (completedLis.length === 0) return;
+
+                completedLis.forEach(li => {
+                    li.classList.add('removing');
+                });
+
+                setTimeout(() => {
+                    todos = todos.filter(todo => !todo.completed);
+                    saveAndRender();
+                }, 400); 
+            }
+        }
+
+        function updateProgress() {
+            if (todos.length === 0) {
+                progressBar.style.width = '0%';
+                clearCompletedBtn.style.display = 'none';
+                return;
+            }
+
+            const completedTasks = todos.filter(todo => todo.completed).length;
+            const percentage = (completedTasks / todos.length) * 100;
+            progressBar.style.width = `${percentage}%`;
+
+            clearCompletedBtn.style.display = completedTasks > 0 ? 'inline-block' : 'none';
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('pro-todos-fr-dynamic', JSON.stringify(todos));
+            renderTodos();
+        }
+
+        function renderTodos() {
+            taskList.innerHTML = '';
+            
+            let filteredTodos = todos;
+            if (currentFilter === 'pending') {
+                filteredTodos = todos.filter(todo => !todo.completed);
+            } else if (currentFilter === 'completed') {
+                filteredTodos = todos.filter(todo => todo.completed);
+            }
+
+            if (filteredTodos.length === 0) {
+                emptyState.style.display = 'block';
+            } else {
+                emptyState.style.display = 'none';
+                
+                filteredTodos.forEach(todo => {
+                    const li = document.createElement('li');
+                    li.dataset.id = todo.id; 
+                    if (todo.completed) li.classList.add('completed');
+
+                    li.innerHTML = `
+                        <div class="task-info" onclick="toggleTodo(${todo.id})">
+                            <div class="custom-checkbox">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <span class="task-text">${todo.text}</span>
+                        </div>
+                        <div class="actions">
+                            <button class="icon-btn edit-btn" onclick="editTodo(${todo.id})">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button class="icon-btn delete-btn" onclick="deleteTodoWithAnimation(${todo.id})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    taskList.appendChild(li);
+                });
+            }
+            
+            updateProgress();
+        }
+    </script>
+</body>
+</html>
